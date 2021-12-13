@@ -73,10 +73,14 @@
     }
 
     .add-or-remove {
-        width: 25x;
+        width: 25px;
         height: 25px;
     }
 
+    .admin_only {
+        font-size: small;
+        font-weight: bold;
+    }
 </style>
 <div class="youtuber mt-3 mx-2">
     <div class="col-2">
@@ -86,9 +90,9 @@
     <div class="youtuber-summary col-8 ms-3">
         <div class="my-1 youtuber-name"> {{ youtuber.name }}</div>
         <div class="my-1 youtuber-dsc"> {{ youtuber.description }} </div>
-        <div class="youtuber-tags"> #{{ youtuber.tag.all|join:" #" }}</div>
+        <div class="youtuber-tags"> {{ youtuber.tag.all|join:", " }}</div>
     </div>
-    
+ 
     {% if my_youtuber %}
     <div class="col-3"><a href="{% url 'youtuber:add_my_youtuber' youtuber.id  %}"><img class="add-or-remove"
                 src="{% static "youtuber/img/circle_plus.png" %}" alt="plus.png"></a></div>
@@ -100,7 +104,14 @@
 
 <div class="mx-2 my-3 dsc-detail">
     {{ youtuber.detail_description }}
+    {% if user.is_superuser %}
+<div class="admin_only my-2">
+    <a href="{% url 'youtuber:edit_youtuber' youtuber.id %}">수정하기</a>
+    <a href="{% url 'youtuber:delete_youtuber' youtuber.id %}">삭제하기</a>
 </div>
+{% endif %}
+</div>
+<!-- 관리자 계정만 수정, 삭제 가능 -->
 
 <div class="mx-3 my-3">
     <div class="video-list">

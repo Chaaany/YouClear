@@ -138,14 +138,15 @@
             </div>
             
             {% if user.is_authenticated and list in check_my_youtuber_lists %}
+                {% if list in check_my_youtuber_lists %}
                 <div class="mx-4">
                     <a href="{% url 'youtuber:remove_my_youtuber_list' list.id%}"><img class="add-or-remove" src="{% static "youtuber/img/bookmark-fill.svg" %}" alt="bookmark-fill.png" width="29px" height="41px"></a>
                 </div>
-            {% elif user.is_authenticated and list not in check_my_youtuber_lists %}
+                {% else %}
                 <div class="mx-4">
                     <a href="{% url 'youtuber:add_my_youtuber_list' list.id %}"><img class="add-or-remove" src="{% static "youtuber/img/bookmark.svg" %}" alt="bookmark.png" width="29px" height="41px"></a>
                 </div>
-            {% else %}
+                {% endif %}
             {% endif %}
         </div>
 
@@ -164,10 +165,6 @@
             </div>
         </a>
         {% endfor %}
-
-
-
-
     </div>
     {% endfor %}
 </div>

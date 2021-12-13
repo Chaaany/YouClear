@@ -8,7 +8,7 @@ from allauth.account.views import PasswordChangeView
 
 @login_required
 def my_page(request, user_id):
-    my_youtubers = MyYoutuber.objects.filter(user=user_id, activated=True).order_by('-listed_date')[:2]
+    my_youtubers = MyYoutuber.objects.filter(user=user_id, activated=True).order_by('-listed_date')
     context = {'my_youtuber': my_youtubers}
     return render(request, 'accounts/mypage.html', context)
 

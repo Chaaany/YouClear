@@ -16,16 +16,16 @@ def get_video_id_by_url(url):
         raise Exception(f"Wasn't able to parse video URL: {url}")
 
 # video 데이터 입력용 메소드 api key와 video Id 넣으면 data return
-def get_video_info(DEVELOPER_API_KEY, videoId):
+def get_video_info(developer_api_key, videoId):
     # youtube api 사용하기 위한 기본 정보 (디벨로퍼 키 반드시 파라미터로 넣기)
-    DEVELOPER_KEY = DEVELOPER_API_KEY
+    developer_key = developer_api_key
     YOUTUBE_API_SERVICE_NAME = "Youtube"
     YOUTUBE_API_VERSION = "v3"
 
     youtube = build(
         YOUTUBE_API_SERVICE_NAME, 
         YOUTUBE_API_VERSION, 
-        developerKey=DEVELOPER_KEY 
+        developerKey=developer_key 
     )
     # youtube videos.list api 호출
     try:
@@ -69,15 +69,15 @@ def get_url_to_image(thumbsnail_url, out_path, channel_title):
     return thumbsnail_url_path
 
 # youtuber 등록시 필요한 channel_info
-def get_channel_info(DEVELOPER_API_KEY, channel_Id):
-    DEVELOPER_KEY = DEVELOPER_API_KEY
+def get_channel_info(developer_api_key, channel_Id):
+    developer_key = developer_api_key
     YOUTUBE_API_SERVICE_NAME = "Youtube"
     YOUTUBE_API_VERSION = "v3"
 
     youtube = build(
         YOUTUBE_API_SERVICE_NAME, 
         YOUTUBE_API_VERSION, 
-        developerKey=DEVELOPER_KEY 
+        developerKey=developer_key 
     )
     # youtube videos.list api 호출
     try:
@@ -103,15 +103,15 @@ def get_channel_info(DEVELOPER_API_KEY, channel_Id):
     return channel_content
 
 # video id 넣었을 때 유투버 없으면 유투버까지 넣어주려고 하려고 만들었으나 아직 미완
-def _get_playlist_info(DEVELOPER_API_KEY, playlist_Id):
-    DEVELOPER_KEY = DEVELOPER_API_KEY
+def _get_playlist_info(developer_api_key, playlist_Id):
+    developer_key = developer_api_key
     YOUTUBE_API_SERVICE_NAME = "Youtube"
     YOUTUBE_API_VERSION = "v3"
 
     youtube = build(
         YOUTUBE_API_SERVICE_NAME, 
         YOUTUBE_API_VERSION, 
-        developerKey=DEVELOPER_KEY 
+        developerKey=developer_key 
     )
     # youtube videos.list api 호출
     channel_Id = "UCWXoZbjwHKS4s0RyJCuoAQQ"

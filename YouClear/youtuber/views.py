@@ -1,3 +1,4 @@
+from django import contrib
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from .models import Youtuber, YoutuberList, MyYoutuberList, MyYoutuber, Video
@@ -7,12 +8,14 @@ from django.utils import timezone
 from accounts.models import User
 from django.contrib import messages
 from YouClear.settings import MEDIA_ROOT, MEDIA_URL
+from taggit.models import Tag
+from django.contrib.contenttypes.models import ContentType
 # 유투브 api 사용
 from .youtube_api import get_video_id_by_url, get_video_info, get_url_to_image, get_channel_info
 
 def index(request):
     # 최신순으로 정렬(유투버 5명 / 유투버리스트 3개)
-    youtubers = Youtuber.objects.all().order_by('-create_date')[0:5]
+    youtubers = Youtuber.objects.all().order_by('-create_date')[0:4]
     youtuber_lists = YoutuberList.objects.all().order_by('-create_date')[0:3]
     my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
     check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
@@ -43,6 +46,51 @@ def youtuber(request, youtuber_id):
 
     return render(request, 'youtuber/youtuber.html', context)
 
+@login_required
+def edit_youtuber(request, youtuber_id):
+    if request.user.is_superuser:
+        try:
+            youtuber = Youtuber.objects.get(id=youtuber_id)
+        except ObjectDoesNotExist:
+            return redirect('youtuber:index')
+        # get 호출일 경우 수정 페이지 호출
+        if request.method == 'GET':
+            context = {'youtuber': youtuber}
+            return render(request, 'youtuber/edit_youtuber.html', context)
+        
+        # Post 호출일 경우 수정 
+        elif request.method == 'POST':
+            profile_image = request.FILES.get('profile_image')
+            if profile_image:
+                youtuber.profile_image = profile_image
+                
+            youtuber.name = request.POST.get('youtuber_name')
+            youtuber.channel_id = request.POST.get('channel_id')
+            youtuber.description =request.POST.get('youtuber_dsc')
+            youtuber.detail_description = request.POST.get('detail_description')
+            
+            youtuber.save()
+
+            return redirect('youtuber:youtuber', youtuber_id=youtuber.id)
+    else:
+        return redirect('youtuber:youtuber', youtuber_id=youtuber_id)
+
+@login_required
+def delete_youtuber(request, youtuber_id):
+    if request.user.is_superuser:
+        try:
+            youtuber = Youtuber.objects.get(id=youtuber_id)
+        except ObjectDoesNotExist:
+            return redirect('youtuber:youtuber', youtuber_id=youtuber_id)
+        
+        youtuber.delete()
+
+        return redirect('youtuber:index')
+    
+    else:
+        return redirect('youtuber:youtuber', youtuber_id=youtuber_id)
+
+        
 @login_required
 def my_youtuber(request, user_id):
     if user_id == request.user.id:
@@ -156,7 +204,7 @@ def youtuber_list_detail(request,youtuber_list_id, youtuber_id=None):
     if youtuber_id == None:
         for youtuber in youtubers:
             videos += _get_videos(youtuber.id)
-            print(videos)
+            # print(videos)
         context = {
             'youtuber_list_id': youtuber_list_id,
             'youtuber_list': youtuber_list,
@@ -166,7 +214,7 @@ def youtuber_list_detail(request,youtuber_list_id, youtuber_id=None):
         return render(request, 'youtuber/youtuber_list_detail.html', context)
     else:
         videos = _get_videos(youtuber_id)
-        print(videos)
+        # print(videos)
         context = {
             'youtuber_list_id': youtuber_list_id,
             'youtuber_id': youtuber_id,
@@ -179,37 +227,21 @@ def youtuber_list_detail(request,youtuber_list_id, youtuber_id=None):
 def category(request, tag_slug=None):
     youtubers = Youtuber.objects.all()
     youtuber_lists = YoutuberList.objects.all().order_by('-create_date')
-    tmp_tags = [youtuber_list.tag.all() for youtuber_list in youtuber_lists]
-    tags = {}
-    tmp_all_tags = []
-    all_tags = []
-    counter = 0
-    for tag in tmp_tags:
-        counter+=1
-        tags[counter] = list(tag)
-
-    for tag in list(tags.values()):
-        tmp_all_tags += tag
-
-# 태그 중복제거
-    # all_tags = set(tmp_all_tags)
-    for tag in tmp_all_tags:
-        if tag not in all_tags:
-            all_tags.append(tag)
-
+    all_tags = list(Tag.objects.all().filter(youtuberlist=True))
     my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
     check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
 
+# 필터 적용 전 전체 리스트 나열
     if tag_slug == None:
         context = {
             'youtubers': youtubers, 
             'youtuber_lists': youtuber_lists,
             'check_my_youtuber_lists': check_my_youtuber_lists,
             'all_tags': all_tags,
-            'tags': tags
         }
         return render(request, 'youtuber/category.html', context)
 
+# 특정 태그로 필터 후 리스트 나열
     else:
         specific_youtuber_lists = YoutuberList.objects.filter(tag__slug__in=[tag_slug])
         # print(specific_youtuber_lists)
@@ -219,7 +251,6 @@ def category(request, tag_slug=None):
             'specific_youtuber_lists': specific_youtuber_lists,
             'check_my_youtuber_lists': check_my_youtuber_lists,
             'all_tags': all_tags,
-            'tags': tags,
             'specific_tag_slug': tag_slug
         }
         
@@ -227,7 +258,7 @@ def category(request, tag_slug=None):
 
 @login_required
 def admin_only(request):
-    if request.user.username == 'admin':
+    if request.user.is_superuser:
         return render(request, 'youtuber/admin_only.html')
     else:
         redirect('youtuber:index')
@@ -238,7 +269,7 @@ def register_youtuber(request):
         channel_id = request.POST.get('channel_id')
         youtube_api_key = request.POST.get('youtube_api_key')
         
-        channel_info = get_channel_info(DEVELOPER_API_KEY = youtube_api_key, channel_Id = channel_id)
+        channel_info = get_channel_info(developer_api_key = youtube_api_key, channel_Id = channel_id)
         if type(channel_info) is dict:
             # 썸네일 url to jpg 파일 처리
             channel_thumbsnail_url = get_url_to_image(
@@ -274,7 +305,7 @@ def register_video(request):
         if 'http' in video_id  or 'youtube' in video_id:
             video_id = get_video_id_by_url(video_id)
             print(video_id)
-            video_info = get_video_info(DEVELOPER_API_KEY = youtube_api_key, videoId = video_id)
+            video_info = get_video_info(developer_api_key = youtube_api_key, videoId = video_id)
         else:
             video_info = get_video_info(youtube_api_key ,video_id)
         
