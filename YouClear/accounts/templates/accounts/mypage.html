@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load socialaccount %}
 
 {% block title %}YouClear | Mypage {% endblock title %}
 {% load static %}
@@ -41,7 +42,19 @@
     {% if user.is_superuser %}
     <div class="my-4"><a class="mypage-list" href="{% url 'youtuber:admin_only' %}">데이터 넣기</a></div>
     {% endif %}
-    <div class="my-4"><a class="mypage-list" href="#">내 정보 수정</a></div>
+    <div class="col-8 mypage-list">내 정보 수정</div>
+    <div class="change-my-info mx-3 my-3">
+        
+        <div class="my-2">
+            <a href="{% url 'account_change_nickname' %}">닉네임 변경</a>
+        </div>
+
+        {% if not user.socialaccount_set.all %}
+        <div>
+            <a href="{% url 'account_change_password' %}">비밀번호 변경</a>
+        </div>
+        {% endif %}
+    </div>
     <div class="youtuber my-4">
         <div class="col-8 mypage-list">찜한 유투버</div>
         <div class="col-9"><a href="{% url 'youtuber:my_youtuber' user.id %}"><img

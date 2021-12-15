@@ -49,6 +49,7 @@
             
             <label for="youtuber_tag">태그(수정불가)</label>
             <input class="form-control mb-3" id="youtuber_tag" type="text" name="youtuber_tag" placeholder="태그는 관리자 사이트에서 수정 가능합니다." value="{{ youtuber.tag.all|join:', '}}" disabled/>
+            <div><a href="http://127.0.0.1:8000/admin/youtuber/youtuber/">태그 변경 페이지 링크</a></div>
         </div>
         <div>
             <label for="detail_description">자세한 설명</label>
