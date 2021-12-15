@@ -10,13 +10,14 @@ from django.contrib import messages
 from YouClear.settings import MEDIA_ROOT, MEDIA_URL
 from taggit.models import Tag
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 # 유투브 api 사용
 from .youtube_api import get_video_id_by_url, get_video_info, get_url_to_image, get_channel_info
 
 def index(request):
     # 최신순으로 정렬(유투버 5명 / 유투버리스트 3개)
     youtubers = Youtuber.objects.all().order_by('-create_date')[0:4]
-    youtuber_lists = YoutuberList.objects.all().order_by('-create_date')[0:3]
+    youtuber_lists = YoutuberList.objects.all().order_by('-create_date')
     my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
     check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
 
@@ -332,3 +333,18 @@ def register_video(request):
 
     return redirect('youtuber:admin_only')
     
+def popular_youtuber_list(request):
+    my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
+    check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
+
+    youtuber_lists = YoutuberList.objects.annotate(num_user=Count('myyoutuberlist')).order_by('-num_user', 'create_date')
+    youtuber_lists = youtuber_lists.filter(myyoutuberlist__activated=True)[0:10]
+
+    context = {
+        'youtuber_lists': youtuber_lists,
+        'check_my_youtuber_lists': check_my_youtuber_lists,
+        }
+    # for list in youtuber_lists:
+    #     print(list, list.myyoutuberlist_set.count())
+    return render(request, 'youtuber/popular_list.html', context)
+
