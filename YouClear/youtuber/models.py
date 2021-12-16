@@ -18,10 +18,10 @@ class Youtuber(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name = 'youtuber'
+    
     def __str__(self):
         return self.name
-
-
+ 
 # 유투버 별 비디오
 class Video(models.Model):
     youtuber_name = models.ForeignKey(Youtuber, on_delete=models.CASCADE)

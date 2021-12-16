@@ -190,12 +190,14 @@ def edit_my_youtuber_list(request, user_id):
 
     return render(request, 'youtuber/edit_my_youtuber_list.html', context)
 
+
 #  특정 유투버 영상 리스트
 def _get_videos(youtuber_id):
     videos = Video.objects.filter(youtuber_name=youtuber_id)
     videos = [video for video in videos]
     return videos
 
+@login_required
 # 마이리스트 상세페이지
 def youtuber_list_detail(request,youtuber_list_id, youtuber_id=None):
     youtuber_list = YoutuberList.objects.get(id=youtuber_list_id)
@@ -225,6 +227,7 @@ def youtuber_list_detail(request,youtuber_list_id, youtuber_id=None):
         }
         return render(request, 'youtuber/youtuber_list_detail_specific_youtuber.html', context)
 
+@login_required
 def category(request, tag_slug=None):
     youtubers = Youtuber.objects.all()
     youtuber_lists = YoutuberList.objects.all().order_by('-create_date')
@@ -264,6 +267,7 @@ def admin_only(request):
     else:
         redirect('youtuber:index')
 
+@login_required
 # 관리자 계정일 경우 유투버(채널) 등록
 def register_youtuber(request):
     if request.method == 'POST':
@@ -296,7 +300,8 @@ def register_youtuber(request):
             messages.info(request, f'{channel_info}')
             return redirect('youtuber:admin_only')
     return redirect('youtuber:admin_only')
-    
+
+@login_required
 # 관리자 계정일 경우 video 등록
 def register_video(request):
     if request.method == 'POST':
@@ -332,19 +337,23 @@ def register_video(request):
             messages.info(request, f'{video_info}')
 
     return redirect('youtuber:admin_only')
-    
+
+@login_required
 def popular_youtuber_list(request):
     my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
     check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
 
     youtuber_lists = YoutuberList.objects.annotate(num_user=Count('myyoutuberlist')).order_by('-num_user', 'create_date')
     youtuber_lists = youtuber_lists.filter(myyoutuberlist__activated=True)[0:10]
+    
+    count_list = [list.myyoutuberlist_set.filter(activated=True).count() for list in youtuber_lists]
 
     context = {
         'youtuber_lists': youtuber_lists,
         'check_my_youtuber_lists': check_my_youtuber_lists,
+        'count_list':count_list
         }
-    # for list in youtuber_lists:
-    #     print(list, list.myyoutuberlist_set.count())
+    for list in youtuber_lists:
+        print(list, list.myyoutuberlist_set.filter(activated=True).count())
     return render(request, 'youtuber/popular_list.html', context)
 
