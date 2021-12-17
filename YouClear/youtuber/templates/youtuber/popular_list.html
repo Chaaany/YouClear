@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_tags %}
 
 {% block content %}
 <style>
@@ -95,6 +96,43 @@
     .flex-box {
         display: flex;
     }
+
+    thead {
+            background-color:#cecece;
+    }
+
+    .content {
+            max-width:500px;
+            margin: auto;
+            padding:10px;
+    }
+
+    .header {
+        text-align: center;
+    }
+
+    .board {
+        width: 100%
+    }
+
+    .even_bgcolor {
+        background-color:#e8efff;
+    }
+
+    .pagination {
+        display: flex;           
+    }
+
+    .current {
+        font-weight: bold;
+    }
+
+
+    .abutton {
+        background-color: #e6e6ff;
+        color: #7b7b7b;
+        font-size: small;
+    }
 </style>
 <div class="category-title mx-3 my-2">
     POPULAR YOUTUBER LIST
@@ -110,7 +148,7 @@
         </div>
 
         {% if user.is_authenticated %}
-        {{list.myyoutuberlist_set.count }}
+        {{list | count_filter}}
         {% if list in check_my_youtuber_lists %}
         <div class="mx-4">
             <a href="{% url 'youtuber:remove_my_youtuber_list' list.id%}"><img class="add-or-remove" src="{% static "youtuber/img/bookmark-fill.svg" %}" alt="bookmark-fill.png" width="29px"
@@ -141,4 +179,36 @@
     {% endfor %}
 </div>
 {% endfor %}
+<!-- Pagination -->
+<div style="text-align:center">
+    <div class="pagination">
+    
+        <div class="col-4">
+        {% if youtuber_lists.has_previous %}
+            <a class="abutton" href="?page=1">맨 앞으로</a>
+            <a class="abutton" href="?page={{ youtuber_lists.previous_page_number }}">이전</a>
+        {% endif %}
+        </div>
+
+        <div class="col-4">
+        {% for page in youtuber_lists.paginator.page_range %}
+            {% if page >= youtuber_lists.number|add:-2 and page <= youtuber_lists.number|add:2 %}
+            <span class="{% if page == youtuber_lists.number %}current{% endif %}">
+                <a href="?page={{ page }}">{{ page }}</a>
+            </span>
+            {% elif page >= youtuber_lists.number|add:-3 and page <= youtuber_lists.number|add:3 %}
+                ..
+            {% endif %}
+        {% endfor %}
+        </div>
+
+        <div class="col-4">
+        {% if youtuber_lists.has_next %}
+            <a class="abutton" href="?page={{ youtuber_lists.next_page_number }}">다음</a>
+            <a class="abutton" href="?page={{ youtuber_lists.paginator.num_pages }}">맨 뒤로</a>
+        {% endif %}
+        </div>
+
+    </div>  
+</div> 
 {% endblock content %}

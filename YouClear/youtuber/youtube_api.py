@@ -56,7 +56,7 @@ def get_video_info(developer_api_key, videoId):
 # 웹 url을 png파일로 변환
 def get_url_to_image(thumbsnail_url, out_path, channel_title):
 #저장할 웹 이미지 주소
-    outpath = out_path #지정 이미지 저장 폴이
+    outpath = out_path #지정 이미지 저장 폴더
 
     if not os.path.isdir(outpath): #폴더가 존재하지 않는다면 폴더 생성
         os.makedirs(outpath)

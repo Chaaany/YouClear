@@ -1,4 +1,3 @@
-from django import contrib
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from .models import Youtuber, YoutuberList, MyYoutuberList, MyYoutuber, Video
@@ -7,12 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from accounts.models import User
 from django.contrib import messages
-from YouClear.settings import MEDIA_ROOT, MEDIA_URL
+from YouClear.settings import MEDIA_ROOT
 from taggit.models import Tag
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 # 유투브 api 사용
 from .youtube_api import get_video_id_by_url, get_video_info, get_url_to_image, get_channel_info
+# 페이지 네이터
+from django.core.paginator import Paginator
 
 def index(request):
     # 최신순으로 정렬(유투버 5명 / 유투버리스트 3개)
@@ -145,8 +145,12 @@ def edit_my_youtuber(request, user_id):
 def my_youtuber_list(request, user_id):
     if user_id == request.user.id:
         my_youtuber_lists = MyYoutuberList.objects.filter(user=user_id, activated=True).order_by('-listed_date')
+        paginator = Paginator(my_youtuber_lists, 3) # 한 페이지에 5개의 리스트 데이터 전달
+        page = request.GET.get('page') # GET 방식으로 페이지 구분
+        my_youtuber_lists = paginator.get_page(page) # 페이지 번호 대로 데이터 전달
+
         context = {'my_youtuber_lists': my_youtuber_lists}
-            
+
         return render(request, 'youtuber/my_youtuber_list.html', context)
     
     return redirect('youtuber:index')
@@ -271,6 +275,12 @@ def admin_only(request):
 # 관리자 계정일 경우 유투버(채널) 등록
 def register_youtuber(request):
     if request.method == 'POST':
+        if not request.POST.get('channel_id'):
+            messages.info(request, '유투버(채널) id를 넣어주세요')
+            return redirect('youtuber:admin_only')
+        if not request.POST.get('youtube_api_key'):
+            messages.info(request, 'api key를 넣어주세요')
+            return redirect('youtuber:admin_only')
         channel_id = request.POST.get('channel_id')
         youtube_api_key = request.POST.get('youtube_api_key')
         
@@ -305,6 +315,12 @@ def register_youtuber(request):
 # 관리자 계정일 경우 video 등록
 def register_video(request):
     if request.method == 'POST':
+        if not request.POST.get('video_id'):
+            messages.info(request, '비디오 id를 넣어주세요')
+            return redirect('youtuber:admin_only')
+        if not request.POST.get('youtube_api_key'):
+            messages.info(request, 'api key를 넣어주세요')
+            return redirect('youtuber:admin_only')
         video_id = request.POST.get('video_id')
         youtube_api_key = request.POST.get('youtube_api_key')
         
@@ -343,17 +359,19 @@ def popular_youtuber_list(request):
     my_youtuber_lists = MyYoutuberList.objects.filter(user=request.user.id, activated=True)
     check_my_youtuber_lists = [my_list.youtuber_list for my_list in my_youtuber_lists]
 
-    youtuber_lists = YoutuberList.objects.annotate(num_user=Count('myyoutuberlist')).order_by('-num_user', 'create_date')
-    youtuber_lists = youtuber_lists.filter(myyoutuberlist__activated=True)[0:10]
-    
-    count_list = [list.myyoutuberlist_set.filter(activated=True).count() for list in youtuber_lists]
+    youtuber_lists = YoutuberList.objects.annotate(num_user=Count('myyoutuberlist', filter=Q(myyoutuberlist__activated=True))).order_by('-num_user', 'create_date')
+    youtuber_lists = youtuber_lists.filter(myyoutuberlist__activated=True) 
+    paginator = Paginator(youtuber_lists, 3) # 한 페이지에 5개의 리스트 데이터 전달
+    page = request.GET.get('page') # GET 방식으로 페이지 구분
+    youtuber_lists = paginator.get_page(page) # 페이지 번호 대로 데이터 전달
 
     context = {
         'youtuber_lists': youtuber_lists,
         'check_my_youtuber_lists': check_my_youtuber_lists,
-        'count_list':count_list
-        }
+    }
+
     for list in youtuber_lists:
-        print(list, list.myyoutuberlist_set.filter(activated=True).count())
+        print(list, list.num_user , list.myyoutuberlist_set.filter(activated=True).count())
+
     return render(request, 'youtuber/popular_list.html', context)
 
