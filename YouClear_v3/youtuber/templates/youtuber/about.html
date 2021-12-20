@@ -1,0 +1,16 @@
+{% extends 'base_only_logo.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    background:white;
+}
+</style>
+<img src="{% static 'youtuber/img/팀원.png' %}" alt="팀원소개" style="margin-left:90px; width:60%;">
+<img src="{% static 'youtuber/img/서비스소개.png' %}" alt="팀원소개" style="width:100%;">
+
+{% endblock content %}
