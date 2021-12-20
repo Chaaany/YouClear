@@ -1,0 +1,11 @@
+[Unit]
+Description=Gunicorn Daemon
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/env/YouClear
+ExecStart=/home/ubuntu/env/bin/gunicorn YouClear.wsgi --bind 0:8000
+
+[Install]
+WantedBy=multi-user.target
