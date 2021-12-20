@@ -2,7 +2,7 @@ from django.core.checks import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from youtuber.models import MyYoutuber
+from youtuber.models import MyYoutuber, YoutuberList
 from django.urls import reverse
 from allauth.account.views import PasswordChangeView
 from .models import User
@@ -14,7 +14,16 @@ from django.contrib import messages
 def my_page(request, user_id):
 
     my_youtubers = MyYoutuber.objects.filter(user=user_id, activated=True).order_by('-listed_date')
-    context = {'my_youtuber': my_youtubers}
+    my_youtubers_count = my_youtubers.count()
+    my_youtuber_lists = YoutuberList.objects.filter(myyoutuberlist__user=user_id, myyoutuberlist__activated=True)
+    my_youtuber_lists_count = my_youtuber_lists.count()
+
+    context = {
+        'my_youtuber': my_youtubers,
+        'my_youtuber_count': my_youtubers_count,
+        'my_youtuber_lists': my_youtuber_lists,
+        'my_youtuber_lists_count': my_youtuber_lists_count
+        }
     
     return render(request, 'accounts/mypage.html', context)
 

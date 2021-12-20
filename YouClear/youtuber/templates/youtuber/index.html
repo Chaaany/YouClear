@@ -1,174 +1,130 @@
 {% extends 'base.html' %}
+
 {% load static %}
 
+{% block style %}
+    <link rel="stylesheet" href="{% static 'youtuber-style.css'%}?ver=20211216">
+{% endblock %}
+
 {% block content %}
-<style>
-    /* div {
-        border: solid 1px black;
-    } */
-
-    .list-youtuber img {
-        object-fit: cover;
-        border-radius: 5%;
-        width: 70px;
-        height: 70px;
-    }
 
 
-    .list-youtuber {
-        display: flex;
-    }
-
-    .list-youtuber-name {
-        font-size: large;
-        font-weight: bold;
-    }
-
-    .list-youtuber-dsc {
-        font-size: smaller;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .list-youtuber-tags {
-        font-size: small;
-        color: grey;
-    }
-
-    .list-youtuber-content {
-        align-items: center;
-    }
-
-    .first-category {
-        display: flex;
-    }
-
-    .category-title {
-        font-weight: bold;
-    }
-
-    a {
-        text-decoration: none;
-        color: black;
-    }
-
-    .profile {
-        text-align: center;
-    }
-
-    .profile img {
-        object-fit: cover;
-        border-radius: 5%;
-        width: 80px;
-        height: 80px;
-    }
-
-    .youtuber-name {
-        text-align: center;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    .youtuber-tags {
-        font-size: 11px;
-        color: grey;
-    }
-
-    .list-title {
-        font-weight: bold;
-    }
-
-    .list-title-name {
-        font-size: 20px;
-    }
-
-    .list-sub-name {
-        font-size: 13px;
-    }
-
-    .youtuber-list {
-        background-color: #e0e0e0;
-        border-radius: 2%;
-    }
-
-    .flex-box {
-        display: flex;
-    }
-</style>
 <div class="container">
     <!-- 유투버 카테고리 -->
-    <div>
-        <div class="category-title mx-3 my-2">
-            LATEST YOUTUBER
+    <div class="youtuber_wrap">
+        <div class="category-title">
+            <h2>LATEST YOUTUBER</h2>
         </div>
-        <div class="first-category">
-            {% for youtuber in youtubers %}
 
-            <a href="{% url 'youtuber:youtuber' youtuber.id %}">
-                <div class="mx-1 my-2">
-                    <div class="profile">
-                        <img src="{{ youtuber.profile_image.url }}" width="68px" height="68px">
-                    </div>
-                    <div class="youtuber-name">
-                        {{ youtuber.name | truncatechars:10 }}
-                    </div>
-                    <div class="youtuber-tags">
-                        #{{ youtuber.tag.all|join:" #" }}
-                    </div>
+
+        <!-- Swiper -->
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                {% for youtuber in youtubers %}
+                <div class="swiper-slide">
+                    <a href="{% url 'youtuber:youtuber' youtuber.id %}">
+                        <img src="{{ youtuber.profile_image.url }}" width="100%" height="100%">
+                        <div class="youtuber-name">
+                            {{ youtuber.name }}
+                        </div>
+                        <div class="youtuber-tags">
+                            #{{ youtuber.tag.all|join:" #" }}
+                        </div>
+                    </a>
                 </div>
-            </a>
-            {% endfor %}
-
+                {% endfor %}
+                <div class="swiper-slide last-slide"></div>
+            </div>
+            <div class="swiper-pagination"></div>
         </div>
+
+
+       
     </div>
 
     <!-- 유투버 리스트  -->
-    <div class="category-title mx-3 my-2">
-        LATEST YOUTUBER LIST
+    <div class="category-title">
+        <h2>LATEST YOUTUBER LIST</h2>
     </div>
     {% for list in youtuber_lists %}
-    <div class="youtuber-list py-1 mx-3 my-2">
-        <div class="list-title flex-box">
-            <div class="list-title mx-3 my-2 col-9">
+    <div class="youtuber-list">
+        <div class="list-title-wrap">
+            <div class="list-title">
                 <a href="{% url 'youtuber:youtuber_list_detail' list.id %}">
                     <div class="list-sub-name">{{ list.sub_title }}</div>
                     <div class="list-title-name">{{ list.main_title }}</div>
                 </a>
             </div>
-
-            {% if user.is_authenticated %}
-            {% if list in check_my_youtuber_lists %}
-            <div class="mx-4">
-                <a href="{% url 'youtuber:remove_my_youtuber_list' list.id%}"><img class="fill"
-                        src="{% static "youtuber/img/bookmark-fill.svg" %}" alt="bookmark-fill.png" width="29px"
-                        height="41px"></a>
-            </div>
+            
+            {% if user.is_authenticated and list in check_my_youtuber_lists %}
+                <div class="list-bookmark done">
+                    <a href="{% url 'youtuber:remove_my_youtuber_list' list.id%}"><i class="fas fa-bookmark fa-lg"></i></a>
+                </div>
+            {% elif user.is_authenticated and list not in check_my_youtuber_lists %}
+                <div class="list-bookmark ">
+                    <a href="{% url 'youtuber:add_my_youtuber_list' list.id %}"><i class="fas fa-bookmark fa-lg"></i></a>
+                </div>
             {% else %}
-            <div class="mx-4">
-                <a href="{% url 'youtuber:add_my_youtuber_list' list.id %}"><img class="space" src="{% static "youtuber/img/bookmark.svg" %}" alt="bookmark.png" width="29px" height="41px"></a>
-            </div>
-            {% endif %}
             {% endif %}
         </div>
 
-        {% for youtuber in list.youtubers.all %}
-        <a href="{% url 'youtuber:youtuber' youtuber.id %}">
-            <div class="list-youtuber my-3 mx-4">
-                <div class="mx-2">
-                    <img src="{{ youtuber.profile_image.url }}" alt="{{youtuber.name}}프로필">
-                </div>
+        <div class="list-youtuber-wrap">
+            {% for youtuber in list.youtubers.all %}
+            <a href="{% url 'youtuber:youtuber' youtuber.id %}">
+                <div class="list-youtuber">
+                    <div class="youtuber-profile-image">
+                        <img src="{{ youtuber.profile_image.url }}" alt="{{youtuber.name}}프로필">
+                    </div>
 
-                <div class="list-youtuber-content col-9">
-                    <div class="list-youtuber-name"> {{ youtuber.name }}</div>
-                    <div class="list-youtuber-dsc"> {{ youtuber.description }} </div>
-                    <div class="list-youtuber-tags"> #{{ youtuber.tag.all|join:" #" }}</div>
+                    <div class="list-youtuber-content">
+                        <div class="list-youtuber-name"> {{ youtuber.name }}</div>
+                        <div class="list-youtuber-dsc"> {{ youtuber.description }} </div>
+                        <div class="list-youtuber-tags"> #{{ youtuber.tag.all|join:" #" }}</div>
+                    </div>
                 </div>
-            </div>
-        </a>
-        {% endfor %}
+            </a>
+            {% endfor %}
+        </div>
+
+
+
     </div>
     {% endfor %}
 </div>
+
+
+</div>
+
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+    var swiper = new Swiper(".mySwiper", {
+        freeMode: true,
+        slidesPerView: 3.5,
+        spaceBetween: 0,
+
+        breakpoints: {
+          640: {
+            slidesPerView: 3.5,
+            spaceBetween: 0,
+          },
+          768: {
+            slidesPerView: 4.5,
+            spaceBetween: 0,
+          },
+          1024: {
+            slidesPerView: 5.5,
+            spaceBetween: 0,
+          },
+          1280: {
+            slidesPerView: 6.5,
+            spaceBetween: 0,
+          },
+        },
+    });
+   
+  </script>
+  
+  
+
 
 {% endblock content %}

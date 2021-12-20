@@ -1,8 +1,5 @@
-{% extends 'base.html' %}
+{% extends 'base_only_logo.html' %}
 {% load static %}
-
-
-
 
 {% block content %}
 <style>
@@ -24,13 +21,16 @@
         display: block;
         margin-bottom: 10px;
     }
+
+    .profile-image-before{
+        align-items: center;
+    }
 </style>
 <div class="youtuber mt-3 mx-2">
     <form action="{% url 'youtuber:edit_youtuber' youtuber.id %}", method="post" enctype="multipart/form-data">
         {% csrf_token %}
         
         <!-- 유투버 프로필 이미지 삽입 -->
-
         <div>
             <img src="{{ youtuber.profile_image.url }}" alt="{{youtuber.name}}프로필" width=80px height=80px>
             <label for="profile_image"></label>
@@ -55,7 +55,7 @@
             <label for="detail_description">자세한 설명</label>
             <textarea name="detail_description" id="detail_description" cols="50" rows="5" placeholder="자세한 설명 작성 부탁드립니다.">{{ youtuber.detail_description }}</textarea>
         </div>
-        <div class="d-grid gap-2">
+        <div class="d-grid gap-2 mb-5">
             <button class="btn btn-primary" type="submit">수정하기</button>
         </div>
 </div>
